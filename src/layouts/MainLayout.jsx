@@ -23,6 +23,13 @@ const Layout = () => {
               >
                 About
               </Link>
+              <Link
+                to="/dashboard"
+                className="flex items-center text-sm font-medium text-muted-foreground hover:text-primary"
+              >
+                Dashboard
+              </Link>
+
             </nav>
           </div>
           <div className="flex items-center gap-4">
