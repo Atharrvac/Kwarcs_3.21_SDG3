@@ -71,7 +71,7 @@ enum ChartType {
 // ==================== API SERVICE ====================
 
 class AnalyticsApiService {
-  static const String baseUrl = 'http://10.118.211.126:5000/api/sensor';
+  static const String baseUrl = 'http://10.227.198.126:5000/api/sensor';
 
   // Get nearby sensors using POST /sensor/nearby endpoint
   static Future<List<NearbySensorData>> getNearbySensors({
