@@ -69,14 +69,20 @@ class NearbySensorData {
   factory NearbySensorData.fromJson(Map<String, dynamic> json) {
     return NearbySensorData(
       id: json['id'] as String,
-      temp: (json['temp'] as num).toDouble(),
-      humidity: (json['humidity'] as num).toDouble(),
-      airQuality: (json['air_quality'] as num).toDouble(),
-      lat: (json['lat'] as num).toDouble(),
-      lang: (json['lang'] as num).toDouble(),
+      temp: _parseDouble(json['temp']),
+      humidity: _parseDouble(json['humidity']),
+      airQuality: _parseDouble(json['air_quality']),
+      lat: _parseDouble(json['lat']),
+      lang: _parseDouble(json['lang']),
       timestamp: DateTime.parse(json['timestamp'] as String),
-      distanceKm: (json['distance_km'] as num).toDouble(),
+      distanceKm: _parseDouble(json['distance_km']),
     );
+  }
+
+  static double _parseDouble(dynamic value) {
+    if (value is num) return value.toDouble();
+    if (value is String) return double.parse(value);
+    throw FormatException('Cannot parse $value to double');
   }
 }
 
@@ -95,7 +101,7 @@ class AQIStatus {
 // ==================== API SERVICE ====================
 
 class SensorApiService {
-  static const String baseUrl = 'http://10.118.211.126:5000/api/sensor';
+  static const String baseUrl = 'http://10.227.198.126:5000/api/sensor';
 
   // Post sensor data to queue (using current mobile location)
   static Future<Map<String, dynamic>?> postSensorData({
@@ -214,7 +220,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   SensorData? _lastPostedData;
 
   // Constants
-  static const String _espSensorUrl = 'http://10.118.211.144/sensor';
+  static const String _espSensorUrl = 'http://10.227.198.144/sensor';
   static const int _refreshIntervalSeconds = 3;
 
   CameraPosition _initialPosition = const CameraPosition(
@@ -292,12 +298,22 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         return;
       }
 
-      final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-          timeLimit: Duration(seconds: 10),
-        ),
-      );
+      // Try to get last known position first (faster)
+      Position? position;
+      try {
+        position = await Geolocator.getLastKnownPosition();
+        debugPrint('📍 Got last known position');
+      } catch (e) {
+        debugPrint('⚠️ No last known position: $e');
+      }
+
+      // If no last known position, get current position with longer timeout
+      position ??= await Geolocator.getCurrentPosition(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.medium,
+            timeLimit: Duration(seconds: 30), // Increased timeout
+          ),
+        );
 
       if (!mounted) return;
 
@@ -311,21 +327,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         _isLoadingLocation = false;
       });
 
-      // Update initial position
-      _initialPosition = CameraPosition(
-        target: userLoc,
-        zoom: 15,
-      );
-
-      // Move camera to user location if map is ready
-      if (_mapController.isCompleted) {
-        final controller = await _mapController.future;
-        controller.animateCamera(CameraUpdate.newCameraPosition(_initialPosition));
-      }
-
-      // Fetch nearby sensors at user's location
-      _fetchNearbySensors(userLoc, _currentZoomLevel);
-
+      // ... rest of the code
     } catch (e) {
       debugPrint('❌ Location error: $e');
       if (mounted) {

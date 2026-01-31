@@ -1,4 +1,5 @@
 import 'package:bridge_kshetra/analytics_screen.dart';
+import 'package:bridge_kshetra/bot_screen.dart';
 import 'package:bridge_kshetra/home_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -10,7 +11,7 @@ class ControllerScreen extends StatefulWidget {
 }
 
 class _ControllerScreenState extends State<ControllerScreen> {
-  final _screens = [const HomeScreen(), const AnalyticsScreen()];
+  final _screens = [const HomeScreen(), const AnalyticsScreen(), const BotScreen()];
   int _currentIndex = 0;
 
   @override
@@ -74,6 +75,23 @@ class _ControllerScreenState extends State<ControllerScreen> {
                       ),
               ),
               label: 'Analytics',
+            ),
+            NavigationDestination(
+              icon: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 280),
+                child: _currentIndex == 1
+                    ? const Icon(
+                  Icons.chat,
+                  color: Color(0xFF60A5FA),
+                  size: 28,
+                )
+                    : Icon(
+                  Icons.chat_bubble_outline,
+                  color: Colors.grey[400],
+                  size: 26,
+                ),
+              ),
+              label: 'Chat',
             ),
           ],
           selectedIndex: _currentIndex,
